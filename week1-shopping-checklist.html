@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week 1 Meal Prep Shopping List</title>
+    <style>
+        /* Import clean, readable fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600&display=swap');
+        
+        :root {
+            --primary: #2d5016;
+            --primary-light: #4a7c2c;
+            --accent: #ff6b35;
+            --bg: #fafaf8;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #666;
+            --border: #e0e0e0;
+            --checked: #4a7c2c;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+        }
+        
+        .mission-brief {
+            background: linear-gradient(135deg, var(--accent) 0%, #e85a2a 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2);
+        }
+        
+        .mission-brief h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        
+        .mission-brief ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .mission-brief li {
+            padding-left: 24px;
+            position: relative;
+            margin-bottom: 6px;
+        }
+        
+        .mission-brief li:before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        button:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        
+        button.secondary:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+        
+        .progress-bar {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .progress-track {
+            background: var(--border);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+        
+        .section {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px var(--shadow);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .section h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .section-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item:hover {
+            background: var(--bg);
+            margin: 0 -8px;
+            padding: 12px 8px;
+            border-radius: 4px;
+        }
+        
+        .item.checked {
+            opacity: 0.5;
+        }
+        
+        .item.checked label {
+            text-decoration: line-through;
+        }
+        
+        input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: var(--checked);
+        }
+        
+        label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1rem;
+            user-select: none;
+        }
+        
+        .note {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-left: 36px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 32px;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛒 Week 1 Meal Prep Setup</h1>
+        <p class="subtitle">Getting started with the meal prep system</p>
+    </header>
+    
+    <div class="mission-brief">
+        <h2>Today's Mission</h2>
+        <ul>
+            <li>Stop 1: Get containers & organization ($40-60)</li>
+            <li>Stop 2: Sam's Club for this week's groceries</li>
+            <li>Tonight: Organize, eat rotisserie chicken, prep for Sunday</li>
+        </ul>
+    </div>
+    
+    <div class="controls">
+        <button onclick="checkAll()">Check All</button>
+        <button onclick="uncheckAll()" class="secondary">Uncheck All</button>
+        <button onclick="resetList()" class="secondary">Reset List</button>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-label">
+            <span>Shopping Progress</span>
+            <span id="progress-text">0 / 0</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+    
+    <!-- Stop 1: Containers & Organization -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📦 Stop 1: Target/Walmart (Containers)</h2>
+            <span class="section-count" id="count-stop1">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item1" onchange="updateProgress()">
+            <label for="item1">8-10 glass meal prep containers (2-3 compartment style)</label>
+        </div>
+        <div class="note">Target Pyrex or Snapware sets (~$25-35)</div>
+        
+        <div class="item">
+            <input type="checkbox" id="item2" onchange="updateProgress()">
+            <label for="item2">Box of gallon freezer bags</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item3" onchange="updateProgress()">
+            <label for="item3">Box of quart freezer bags</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item4" onchange="updateProgress()">
+            <label for="item4">Sharpie or freezer labels</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item5" onchange="updateProgress()">
+            <label for="item5">2-3 medium plastic bins for pantry</label>
+        </div>
+        <div class="note">Shoe box size - dollar store quality is fine</div>
+    </div>
+    
+    <!-- Stop 2: Sam's Club - Proteins -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🍗 Stop 2: Sam's Club - Proteins</h2>
+            <span class="section-count" id="count-proteins">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item6" onchange="updateProgress()">
+            <label for="item6">1 rotisserie chicken (tonight's dinner!)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item7" onchange="updateProgress()">
+            <label for="item7">2-3 lbs chicken thighs OR breasts</label>
+        </div>
+        <div class="note">For Sunday meal prep</div>
+        
+        <div class="item">
+            <input type="checkbox" id="item8" onchange="updateProgress()">
+            <label for="item8">1.5 lbs ground beef</label>
+        </div>
+        <div class="note">For Sunday meal prep</div>
+    </div>
+    
+    <!-- Fresh Produce -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🥬 Fresh Produce (Week 1 Meals)</h2>
+            <span class="section-count" id="count-produce">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item9" onchange="updateProgress()">
+            <label for="item9">2 onions</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item10" onchange="updateProgress()">
+            <label for="item10">2 bell peppers</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item11" onchange="updateProgress()">
+            <label for="item11">1 head broccoli (or bag of florets)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item12" onchange="updateProgress()">
+            <label for="item12">1 bag carrots</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item13" onchange="updateProgress()">
+            <label for="item13">Lettuce (for taco toppings)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item14" onchange="updateProgress()">
+            <label for="item14">Tomatoes (for taco toppings)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item15" onchange="updateProgress()">
+            <label for="item15">Any other stir-fry veggies you like</label>
+        </div>
+        <div class="note">Optional: snap peas, water chestnuts, mushrooms</div>
+    </div>
+    
+    <!-- Starches -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🍚 Starches</h2>
+            <span class="section-count" id="count-starches">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item16" onchange="updateProgress()">
+            <label for="item16">Rice (any size - it keeps well)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item17" onchange="updateProgress()">
+            <label for="item17">1 box pasta</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item18" onchange="updateProgress()">
+            <label for="item18">Tortillas or taco shells</label>
+        </div>
+    </div>
+    
+    <!-- Sauces & Pantry -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🥫 Sauces & Pantry (Start Rescue Kit)</h2>
+            <span class="section-count" id="count-sauces">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item19" onchange="updateProgress()">
+            <label for="item19">1 jar marinara sauce</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item20" onchange="updateProgress()">
+            <label for="item20">Soy sauce (small bottle)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item21" onchange="updateProgress()">
+            <label for="item21">Taco seasoning (packet or bottle)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item22" onchange="updateProgress()">
+            <label for="item22">1 can chicken</label>
+        </div>
+        <div class="note">Start of rescue kit</div>
+        
+        <div class="item">
+            <input type="checkbox" id="item23" onchange="updateProgress()">
+            <label for="item23">1 can chili</label>
+        </div>
+        <div class="note">Start of rescue kit</div>
+        
+        <div class="item">
+            <input type="checkbox" id="item24" onchange="updateProgress()">
+            <label for="item24">1 can beans</label>
+        </div>
+        <div class="note">Start of rescue kit</div>
+        
+        <div class="item">
+            <input type="checkbox" id="item25" onchange="updateProgress()">
+            <label for="item25">6-pack decent ramen</label>
+        </div>
+        <div class="note">Start of rescue kit</div>
+    </div>
+    
+    <!-- Dairy & Extras -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🥛 Dairy & Extras</h2>
+            <span class="section-count" id="count-dairy">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item26" onchange="updateProgress()">
+            <label for="item26">Eggs</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item27" onchange="updateProgress()">
+            <label for="item27">Milk</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item28" onchange="updateProgress()">
+            <label for="item28">Shredded cheese (decent size bag)</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item29" onchange="updateProgress()">
+            <label for="item29">Butter</label>
+        </div>
+    </div>
+    
+    <!-- Frozen -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🧊 Frozen Items</h2>
+            <span class="section-count" id="count-frozen">0/0</span>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item30" onchange="updateProgress()">
+            <label for="item30">1 bag frozen stir-fry vegetables</label>
+        </div>
+        
+        <div class="item">
+            <input type="checkbox" id="item31" onchange="updateProgress()">
+            <label for="item31">1 bag frozen broccoli</label>
+        </div>
+    </div>
+    
+    <footer>
+        <p><strong>Budget Estimate:</strong> $40-60 containers + ~$80-120 groceries = ~$120-180 total</p>
+        <p style="margin-top: 12px;">💡 <strong>Tonight's Plan:</strong> Eat rotisserie chicken, wash containers, organize freezer, portion any extra meat</p>
+    </footer>
+    
+    <script>
+        // Load saved state from localStorage on page load
+        window.addEventListener('load', function() {
+            loadCheckedItems();
+            updateProgress();
+        });
+        
+        // Save checkbox state to localStorage whenever changed
+        function updateProgress() {
+            const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            
+            // Save state to localStorage
+            const checkedIds = Array.from(checkedBoxes).map(cb => cb.id);
+            localStorage.setItem('mealPrepChecklist', JSON.stringify(checkedIds));
+            
+            // Update visual state for checked items
+            allCheckboxes.forEach(checkbox => {
+                const item = checkbox.closest('.item');
+                if (checkbox.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+            });
+            
+            // Update overall progress
+            const total = allCheckboxes.length;
+            const checked = checkedBoxes.length;
+            const percentage = total > 0 ? (checked / total) * 100 : 0;
+            
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = `${checked} / ${total}`;
+            
+            // Update section counts
+            updateSectionCount('count-stop1', 'item1', 'item5');
+            updateSectionCount('count-proteins', 'item6', 'item8');
+            updateSectionCount('count-produce', 'item9', 'item15');
+            updateSectionCount('count-starches', 'item16', 'item18');
+            updateSectionCount('count-sauces', 'item19', 'item25');
+            updateSectionCount('count-dairy', 'item26', 'item29');
+            updateSectionCount('count-frozen', 'item30', 'item31');
+        }
+        
+        function updateSectionCount(countId, startId, endId) {
+            const startNum = parseInt(startId.replace('item', ''));
+            const endNum = parseInt(endId.replace('item', ''));
+            let checked = 0;
+            let total = endNum - startNum + 1;
+            
+            for (let i = startNum; i <= endNum; i++) {
+                if (document.getElementById('item' + i).checked) {
+                    checked++;
+                }
+            }
+            
+            document.getElementById(countId).textContent = `${checked}/${total}`;
+        }
+        
+        function loadCheckedItems() {
+            const savedChecked = localStorage.getItem('mealPrepChecklist');
+            if (savedChecked) {
+                const checkedIds = JSON.parse(savedChecked);
+                checkedIds.forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+        }
+        
+        function checkAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+            updateProgress();
+        }
+        
+        function uncheckAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateProgress();
+        }
+        
+        function resetList() {
+            if (confirm('Are you sure you want to reset the entire list? This will uncheck all items.')) {
+                localStorage.removeItem('mealPrepChecklist');
+                uncheckAll();
+            }
+        }
+    </script>
+</body>
+</html>
