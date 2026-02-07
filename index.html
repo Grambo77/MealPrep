@@ -517,6 +517,29 @@
         </div>
     </div>
     
+    <!-- Misc Items -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📝 Misc Items</h2>
+            <span class="section-count" id="count-misc">0/0</span>
+        </div>
+        
+        <div id="misc-items-list">
+            <!-- Pre-populated with wife's request -->
+            <div class="item">
+                <input type="checkbox" id="misc1" onchange="updateProgress()">
+                <label for="misc1">Tropical juice/punch (Aldi's)</label>
+            </div>
+        </div>
+        
+        <div style="margin-top: 16px; display: flex; gap: 8px;">
+            <input type="text" id="new-misc-item" placeholder="Add misc item..." 
+                   style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; font-size: 0.95rem;"
+                   onkeypress="if(event.key === 'Enter') addMiscItem()">
+            <button onclick="addMiscItem()" style="padding: 10px 16px;">+ Add</button>
+        </div>
+    </div>
+    
     <footer>
         <p><strong>Budget Estimate:</strong> $40-60 containers + ~$80-120 groceries = ~$120-180 total</p>
         <p style="margin-top: 12px;">💡 <strong>Tonight's Plan:</strong> Eat rotisserie chicken, wash containers, organize freezer, portion any extra meat</p>
@@ -525,6 +548,7 @@
     <script>
         // Load saved state from localStorage on page load
         window.addEventListener('load', function() {
+            loadMiscItems(); // Load misc items first
             loadCheckedItems();
             updateProgress();
         });
@@ -564,6 +588,13 @@
             updateSectionCount('count-sauces', 'item19', 'item25');
             updateSectionCount('count-dairy', 'item26', 'item29');
             updateSectionCount('count-frozen', 'item30', 'item31');
+            updateMiscCount();
+        }
+        
+        function updateMiscCount() {
+            const miscCheckboxes = document.querySelectorAll('#misc-items-list input[type="checkbox"]');
+            const checkedMisc = document.querySelectorAll('#misc-items-list input[type="checkbox"]:checked');
+            document.getElementById('count-misc').textContent = `${checkedMisc.length}/${miscCheckboxes.length}`;
         }
         
         function updateSectionCount(countId, startId, endId) {
@@ -594,6 +625,74 @@
             }
         }
         
+        // Misc items management
+        let miscItemCounter = 2; // Start at 2 since misc1 is pre-populated
+        
+        function loadMiscItems() {
+            const savedMiscItems = localStorage.getItem('mealPrepMiscItems');
+            if (savedMiscItems) {
+                const miscItems = JSON.parse(savedMiscItems);
+                const miscList = document.getElementById('misc-items-list');
+                
+                // Clear existing dynamic items (keep misc1)
+                const existingItems = miscList.querySelectorAll('.item');
+                existingItems.forEach((item, index) => {
+                    if (index > 0) { // Keep first item (misc1)
+                        item.remove();
+                    }
+                });
+                
+                // Add saved items
+                miscItems.forEach(itemText => {
+                    addMiscItemToDOM(itemText);
+                });
+            }
+        }
+        
+        function addMiscItem() {
+            const input = document.getElementById('new-misc-item');
+            const itemText = input.value.trim();
+            
+            if (itemText) {
+                addMiscItemToDOM(itemText);
+                saveMiscItems();
+                input.value = '';
+                updateProgress();
+            }
+        }
+        
+        function addMiscItemToDOM(itemText) {
+            const miscList = document.getElementById('misc-items-list');
+            const itemId = 'misc' + miscItemCounter++;
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.innerHTML = `
+                <input type="checkbox" id="${itemId}" onchange="updateProgress()">
+                <label for="${itemId}">${itemText}</label>
+                <button onclick="removeMiscItem(this)" 
+                        style="margin-left: auto; padding: 4px 12px; background: var(--accent); font-size: 0.85rem;">
+                    ✕
+                </button>
+            `;
+            
+            miscList.appendChild(itemDiv);
+        }
+        
+        function removeMiscItem(button) {
+            const item = button.closest('.item');
+            item.remove();
+            saveMiscItems();
+            updateProgress();
+        }
+        
+        function saveMiscItems() {
+            const miscList = document.getElementById('misc-items-list');
+            const items = miscList.querySelectorAll('.item label');
+            const miscItems = Array.from(items).slice(1).map(label => label.textContent); // Skip first item (misc1)
+            localStorage.setItem('mealPrepMiscItems', JSON.stringify(miscItems));
+        }
+        
         function checkAll() {
             document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
                 cb.checked = true;
@@ -609,9 +708,10 @@
         }
         
         function resetList() {
-            if (confirm('Are you sure you want to reset the entire list? This will uncheck all items.')) {
+            if (confirm('Are you sure you want to reset the entire list? This will uncheck all items and remove custom misc items.')) {
                 localStorage.removeItem('mealPrepChecklist');
-                uncheckAll();
+                localStorage.removeItem('mealPrepMiscItems');
+                location.reload(); // Reload to reset misc items
             }
         }
     </script>
