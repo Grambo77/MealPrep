@@ -546,11 +546,27 @@
     </footer>
     
     <script>
+        // ============================================
+        // CONFIGURATION - YOU NEED TO SET THESE
+        // ============================================
+        const GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN_HERE';  // Replace with your token
+        const GIST_ID = 'YOUR_GIST_ID_HERE';             // Replace with your Gist ID
+        
+        // How often to check for updates from other devices (milliseconds)
+        const SYNC_INTERVAL = 30000; // 30 seconds
+        // ============================================
+        
+        let lastSyncTime = 0;
+        let syncIntervalId = null;
+        
         // Load saved state from localStorage on page load
         window.addEventListener('load', function() {
-            loadMiscItems(); // Load misc items first
+            loadMiscItemsFromGist(); // Load misc items from Gist first
             loadCheckedItems();
             updateProgress();
+            
+            // Start periodic sync to check for updates from other devices
+            startPeriodicSync();
         });
         
         // Save checkbox state to localStorage whenever changed
@@ -625,10 +641,147 @@
             }
         }
         
-        // Misc items management
+        // Misc items management with GitHub Gist sync
         let miscItemCounter = 2; // Start at 2 since misc1 is pre-populated
         
-        function loadMiscItems() {
+        // Start periodic sync to check for updates
+        function startPeriodicSync() {
+            // Initial check
+            syncFromGist();
+            
+            // Set up interval for periodic checks
+            syncIntervalId = setInterval(() => {
+                syncFromGist();
+            }, SYNC_INTERVAL);
+        }
+        
+        // Load misc items from GitHub Gist
+        async function loadMiscItemsFromGist() {
+            if (GITHUB_TOKEN === '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' || GIST_ID === 'c4c5a0a695a1c8e569835fb19117a1b8') {
+                console.log('GitHub Gist not configured - using localStorage fallback');
+                loadMiscItemsFromLocalStorage();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load from Gist');
+                }
+                
+                const gist = await response.json();
+                const content = gist.files['misc-items.json'].content;
+                const data = JSON.parse(content);
+                
+                lastSyncTime = Date.now();
+                
+                // Clear existing dynamic items (keep misc1)
+                const miscList = document.getElementById('misc-items-list');
+                const existingItems = miscList.querySelectorAll('.item');
+                existingItems.forEach((item, index) => {
+                    if (index > 0) { // Keep first item (misc1)
+                        item.remove();
+                    }
+                });
+                
+                // Add items from Gist
+                data.items.forEach(itemText => {
+                    addMiscItemToDOM(itemText);
+                });
+                
+                updateProgress();
+                
+            } catch (error) {
+                console.error('Error loading from Gist:', error);
+                loadMiscItemsFromLocalStorage(); // Fallback to localStorage
+            }
+        }
+        
+        // Sync check - only update if there are changes
+        async function syncFromGist() {
+            if (GITHUB_TOKEN === 'YOUR_GITHUB_TOKEN_HERE' || GIST_ID === 'YOUR_GIST_ID_HERE') {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) return;
+                
+                const gist = await response.json();
+                const gistUpdated = new Date(gist.updated_at).getTime();
+                
+                // Only reload if Gist was updated after our last sync
+                if (gistUpdated > lastSyncTime) {
+                    console.log('Changes detected, syncing...');
+                    await loadMiscItemsFromGist();
+                }
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+            }
+        }
+        
+        // Save misc items to GitHub Gist
+        async function saveMiscItemsToGist() {
+            if (GITHUB_TOKEN === 'YOUR_GITHUB_TOKEN_HERE' || GIST_ID === 'YOUR_GIST_ID_HERE') {
+                console.log('GitHub Gist not configured - using localStorage fallback');
+                saveMiscItemsToLocalStorage();
+                return;
+            }
+            
+            const miscList = document.getElementById('misc-items-list');
+            const items = miscList.querySelectorAll('.item label');
+            const miscItems = Array.from(items).slice(1).map(label => label.textContent.trim());
+            
+            const data = {
+                items: miscItems,
+                updated: new Date().toISOString()
+            };
+            
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        files: {
+                            'misc-items.json': {
+                                content: JSON.stringify(data, null, 2)
+                            }
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save to Gist');
+                }
+                
+                lastSyncTime = Date.now();
+                console.log('Saved to Gist successfully');
+                
+            } catch (error) {
+                console.error('Error saving to Gist:', error);
+                saveMiscItemsToLocalStorage(); // Fallback to localStorage
+            }
+        }
+        
+        // Fallback: localStorage functions (used if Gist not configured)
+        function loadMiscItemsFromLocalStorage() {
             const savedMiscItems = localStorage.getItem('mealPrepMiscItems');
             if (savedMiscItems) {
                 const miscItems = JSON.parse(savedMiscItems);
@@ -637,7 +790,7 @@
                 // Clear existing dynamic items (keep misc1)
                 const existingItems = miscList.querySelectorAll('.item');
                 existingItems.forEach((item, index) => {
-                    if (index > 0) { // Keep first item (misc1)
+                    if (index > 0) {
                         item.remove();
                     }
                 });
@@ -649,13 +802,20 @@
             }
         }
         
+        function saveMiscItemsToLocalStorage() {
+            const miscList = document.getElementById('misc-items-list');
+            const items = miscList.querySelectorAll('.item label');
+            const miscItems = Array.from(items).slice(1).map(label => label.textContent.trim());
+            localStorage.setItem('mealPrepMiscItems', JSON.stringify(miscItems));
+        }
+        
         function addMiscItem() {
             const input = document.getElementById('new-misc-item');
             const itemText = input.value.trim();
             
             if (itemText) {
                 addMiscItemToDOM(itemText);
-                saveMiscItems();
+                saveMiscItemsToGist(); // Save to Gist instead of localStorage
                 input.value = '';
                 updateProgress();
             }
@@ -682,15 +842,8 @@
         function removeMiscItem(button) {
             const item = button.closest('.item');
             item.remove();
-            saveMiscItems();
+            saveMiscItemsToGist(); // Save to Gist instead of localStorage
             updateProgress();
-        }
-        
-        function saveMiscItems() {
-            const miscList = document.getElementById('misc-items-list');
-            const items = miscList.querySelectorAll('.item label');
-            const miscItems = Array.from(items).slice(1).map(label => label.textContent); // Skip first item (misc1)
-            localStorage.setItem('mealPrepMiscItems', JSON.stringify(miscItems));
         }
         
         function checkAll() {
@@ -710,7 +863,14 @@
         function resetList() {
             if (confirm('Are you sure you want to reset the entire list? This will uncheck all items and remove custom misc items.')) {
                 localStorage.removeItem('mealPrepChecklist');
-                localStorage.removeItem('mealPrepMiscItems');
+                
+                // Reset misc items in Gist
+                if (GITHUB_TOKEN !== 'YOUR_GITHUB_TOKEN_HERE' && GIST_ID !== 'YOUR_GIST_ID_HERE') {
+                    saveMiscItemsToGist(); // This will save an empty list
+                } else {
+                    localStorage.removeItem('mealPrepMiscItems');
+                }
+                
                 location.reload(); // Reload to reset misc items
             }
         }
